@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const res = require('express/lib/response');
-const { Post, User, Vote } = require('../../models');
+const { Post, User, Vote, Comment } = require('../../models');
 const { route } = require('./user-routes');
 const sequelize = require('../../config/connection');
 
@@ -8,6 +8,7 @@ const sequelize = require('../../config/connection');
 router.get('/', (req, res) => {
     console.log('=======================');
     Post.findAll({
+        order:[['created_at', 'DESC']],
         //query configuration
         attributes: [
             'id',
@@ -16,8 +17,15 @@ router.get('/', (req, res) => {
             'created_at',
         [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'),'vote_count']
         ],
-        orer: [['created_at', 'DESC']],
-        include: [
+        include : [
+            {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'user_id', 'post_id', 'created_at'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
@@ -43,7 +51,15 @@ router.get('/:id', (req,res) => {
          'created_at',
          [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'),'vote_count']
         ],
-        include: [
+        include : [
+            {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'user_id', 'post_id', 'created_at'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
